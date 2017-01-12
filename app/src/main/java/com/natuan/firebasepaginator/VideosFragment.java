@@ -1,6 +1,7 @@
 package com.natuan.firebasepaginator;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -82,6 +84,8 @@ public class VideosFragment extends Fragment implements View.OnClickListener, Va
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 Logger.enter();
+                Toast.makeText(getActivity(), "Load More",
+                        Toast.LENGTH_SHORT).show();
                 mAdapter.more();
                 Logger.exit();
             }

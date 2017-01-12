@@ -15,6 +15,10 @@ import com.google.firebase.database.Query;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import static com.natuan.firebasepaginator.InfiniteFirebaseArray.ADDED;
+import static com.natuan.firebasepaginator.InfiniteFirebaseArray.CHANGED;
+import static com.natuan.firebasepaginator.InfiniteFirebaseArray.REMOVED;
+
 /**
  * Created by natuan on 17/01/09.
  */
@@ -39,7 +43,7 @@ public abstract class InfiniteFirebaseRecyclerAdapter<T, VH extends RecyclerView
         mSnapshots.setOnChangedListener(new InfiniteFirebaseArray.OnChangedListener() {
 
             @Override
-            public void onChanged(EventType type, int index, int oldIndex) {
+            public void onChanged(@InfiniteFirebaseArray.EventType int type, int index, int oldIndex) {
                 Logger.d("EventType: " + type);
                 Logger.d("Index: " + index);
                 switch (type) {

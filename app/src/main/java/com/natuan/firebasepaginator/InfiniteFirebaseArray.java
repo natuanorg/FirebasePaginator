@@ -1,5 +1,6 @@
 package com.natuan.firebasepaginator;
 
+import android.support.annotation.IntDef;
 import android.text.TextUtils;
 
 import com.google.firebase.database.ChildEventListener;
@@ -7,6 +8,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,9 +19,18 @@ import java.util.List;
 
 public class InfiniteFirebaseArray implements ChildEventListener {
 
+    public static final int ADDED = 0;
+    public static final int CHANGED = 1;
+    public static final int REMOVED = 2;
+
+    @IntDef({ADDED, CHANGED, REMOVED})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface EventType {}
+
     public interface OnChangedListener {
-        enum EventType {ADDED, CHANGED, REMOVED}
-        void onChanged(EventType type, int index, int oldIndex);
+
+        void onChanged(@EventType int type, int index, int oldIndex);
+
         void onCancelled(DatabaseError databaseError);
     }
 
@@ -87,7 +99,7 @@ public class InfiniteFirebaseArray implements ChildEventListener {
             return;
         }
         mSnapshots.add(++mIndex, snapshot);
-        notifyChangedListeners(OnChangedListener.EventType.ADDED, mIndex);
+        notifyChangedListeners(ADDED, mIndex);
         Logger.d(mIndex + " : " + mNextChildKey);
     }
 
@@ -113,11 +125,11 @@ public class InfiniteFirebaseArray implements ChildEventListener {
         mListener = listener;
     }
 
-    private void notifyChangedListeners(OnChangedListener.EventType type, int index) {
+    private void notifyChangedListeners(@EventType int type, int index) {
         notifyChangedListeners(type, index, -1);
     }
 
-    protected void notifyChangedListeners(OnChangedListener.EventType type, int index, int oldIndex) {
+    protected void notifyChangedListeners(@EventType int type, int index, int oldIndex) {
         if (mListener != null) {
             mListener.onChanged(type, index, oldIndex);
         }
@@ -132,27 +144,31 @@ public class InfiniteFirebaseArray implements ChildEventListener {
     private int getIndexForKey(String key) {
         int index = 0;
         for (DataSnapshot snapshot : mSnapshots) {
-            if (snapshot.getKey().equals(key)) {
+            if (snapshot.getKey().equalsIgnoreCase(key)) {
                 return index;
             } else {
                 index++;
             }
         }
-        throw new IllegalArgumentException("key not found");
+        return -1;
     }
 
     @Override
     public void onChildChanged(DataSnapshot snapshot, String s) {
         int index = getIndexForKey(snapshot.getKey());
-        mSnapshots.set(index, snapshot);
-        notifyChangedListeners(OnChangedListener.EventType.CHANGED, index);
+        if (index != -1) {
+            mSnapshots.set(index, snapshot);
+            notifyChangedListeners(CHANGED, index);
+        }
     }
 
     @Override
     public void onChildRemoved(DataSnapshot snapshot) {
         int index = getIndexForKey(snapshot.getKey());
-        mSnapshots.remove(index);
-        notifyChangedListeners(OnChangedListener.EventType.REMOVED, index);
+        if (index != -1) {
+            mSnapshots.remove(index);
+            notifyChangedListeners(REMOVED, index);
+        }
     }
 
     @Override
